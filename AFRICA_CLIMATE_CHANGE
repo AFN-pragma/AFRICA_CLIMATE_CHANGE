@@ -1,0 +1,83 @@
+import plotly.express as px 
+import pandas as pd 
+import plotly as plt
+import plotly.graph_objects as go
+import plotly.offline as pyo
+import datetime
+import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+AFR = pd.read_csv('AFRICA_CLIMATE_CHANGE.csv')
+print(AFR)
+print('//////////////////////////////////////////////////////////////////////////')
+print(AFR.info())
+print('//////////////////////////////////////////////////////////////////////////')
+print(AFR.describe())
+print('//////////////////////////////////////////////////////////////////////////')
+print(AFR.isnull().sum())
+
+
+AFR['TMIN'] = AFR['TMIN'].fillna(0)
+
+AFR['TMAX'] = AFR['TMAX'].fillna(0)
+print(AFR)
+
+
+
+AFR['DATE'] = pd.to_datetime(AFR['DATE'])
+AFR['YEAR'] = AFR['DATE'].dt.year
+print(AFR)
+
+
+AFR = AFR.drop('PRCP', axis=1)
+print(AFR)
+
+tunis = AFR.loc[AFR['COUNTRY'] == 'Tunisia'] 
+figure_1 = go.Scatter(x=tunis['DATE'], mode='lines',name = 'Tunisie',line=dict(color='red', width=4), y=tunis['TAVG'])
+camer = AFR.loc[AFR['COUNTRY'] == 'Cameroon']
+figure_2 = go.Scatter(x=camer['DATE'], mode='lines', name = 'Cameroon', line=dict(color='rgb(25, 25, 100)', width=4), y=camer['TAVG'] )
+fig = go.Figure()
+fig.add_trace(figure_1)
+fig.add_trace(figure_2)
+fig.update_layout(title = 'AVG temperature fluctuations in Tunisia & Cameroon' )
+fig.update_layout(xaxis_title = 'years' )
+fig.update_layout(yaxis_title = 'avg temperature' )
+fig.show()
+
+
+#A travers ce diagramme, nous constatons que les 2 pays connaissent une variation plus
+# ou moins stable. Cependant la Tunisie aura une forte diminution en 2023
+
+combined_data = pd.concat([tunis, camer])
+
+# Plotting
+combined_zoom = combined_data[(combined_data['YEAR'] >= 1980) & (combined_data['YEAR'] <= 2005)]
+
+# Plotting
+fig = px.line(combined_zoom, x='DATE', y='TAVG', color='COUNTRY',
+              title='Average Temperature Fluctuations (1980-2005)',
+              labels={'TAVG': 'Average Temperature (°C)', 'DATE': 'YEAR'})
+fig.show()
+
+
+senegal_data = AFR.loc[AFR['COUNTRY'] == 'Senegal']
+
+senegal_1980_2000 = senegal_data[(senegal_data['YEAR'] >= 1980) & (senegal_data['YEAR'] <= 2000)]
+senegal_2000_2023 = senegal_data[(senegal_data['YEAR'] > 2000) & (senegal_data['YEAR'] <= 2023)]
+
+fig = px.histogram(senegal_data, x='TAVG', 
+                   title='Temperature Distribution in Senegal',
+                   color='YEAR', 
+                   category_orders={'Year': ['1980-2000', '2000-2023']},
+                   barmode='overlay',
+                   histnorm='percent')
+fig.show()
+
+fig = px.pie(AFR, values='TAVG', names='COUNTRY',
+             color='COUNTRY', title='Average temperature per country.')
+fig.update_traces(textposition='inside', textinfo='percent+label')
+
+fig.show()
+
+
